@@ -8,6 +8,7 @@ APP_PATH = os.path.normpath(os.path.join(
  
 LIB_PATH = os.path.join(APP_PATH, "robot")
 DATA_PATH = os.path.join(APP_PATH, "static")
+FONT_PATH = os.path.join(APP_PATH, "static/fonts")
 TEMP_PATH = os.path.join(APP_PATH, "temp")
 TEMPLATE_PATH = os.path.join(APP_PATH, "server", "templates")
 PLUGIN_PATH = os.path.join(APP_PATH, "plugins")
@@ -49,6 +50,9 @@ def getData(*fname):
     :returns: 配置文件的存储路径
     """
     return os.path.join(DATA_PATH, *fname)
+
+def getFont(*fname):
+    return os.path.join(FONT_PATH, *fname)
 
 def getDefaultConfigPath():    
     return getData(DEFAULT_CONFIG_NAME)

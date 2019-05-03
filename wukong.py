@@ -1,6 +1,7 @@
 # -*- coding: utf-8-*-
 from snowboy import snowboydecoder
 from robot import config, utils, constants, logging, statistic, Player
+from robot.I2c import I2c
 from robot.Updater import Updater
 from robot.ConfigMonitor import ConfigMonitor
 from robot.Conversation import Conversation
@@ -37,7 +38,9 @@ class Wukong(object):
 ''')
         
         config.init()
-        self._conversation = Conversation(self._profiling)
+        self._i2c = I2c()
+        self._i2c.start()
+        self._conversation = Conversation(self._i2c, self._profiling)
         self._conversation.say('{} 你好！试试对我喊唤醒词叫醒我吧'.format(config.get('first_name', '主人')), True)
         self._observer = Observer()
         event_handler = ConfigMonitor(self._conversation)
@@ -105,9 +108,11 @@ class Wukong(object):
             ]
         else:
             models = constants.getHotwordModel(config.get('hotword', 'wukong.pmdl'))
-        self.detector = snowboydecoder.HotwordDetector(models, sensitivity=config.get('sensitivity', 0.5))
+        logger.info('hotword {}'.format(models))
+        self.detector = snowboydecoder.HotwordDetector(models, sensitivity=config.get('sensitivity', 0.4))
         # main loop
         try:
+            logger.info('初始化离线唤醒模块')
             if config.get('/do_not_bother/hotword_switch', False):
                 callbacks = [self._detected_callback,
                              self._do_not_bother_on_callback,
@@ -120,7 +125,9 @@ class Wukong(object):
                                 silent_count_threshold=config.get('silent_threshold', 15),
                                 recording_timeout=config.get('recording_timeout', 5) * 4,
                                 sleep_time=0.03)
+            logger.info('运行结束')
             self.detector.terminate()
+            self._i2c.terminate()
         except Exception as e:
             logger.critical('离线唤醒机制初始化失败：{}'.format(e))
 

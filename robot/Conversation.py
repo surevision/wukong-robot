@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Conversation(object):
 
-    def __init__(self, profiling=False):
+    def __init__(self, i2c=None, profiling=False):
         self.reload()
         # 历史会话消息
         self.history = []
@@ -24,6 +24,7 @@ class Conversation(object):
         self.isRecording = False
         self.profiling = profiling
         self.onSay = None
+        self.i2c = i2c
         self.pardonTimes = 0    # 重试次数
 
     def getHistory(self):
@@ -161,6 +162,8 @@ class Conversation(object):
 
     def say(self, msg, cache=False, plugin='', onCompleted=None):
         """ 说一句话 """
+        if self.i2c:
+            self.i2c.recordSay(msg)
         if self.onSay:
             logger.info('onSay: {}'.format(msg))
             if plugin != '':
