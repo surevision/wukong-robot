@@ -24,6 +24,7 @@ class Conversation(object):
         self.isRecording = False
         self.profiling = profiling
         self.onSay = None
+        self.pardonTimes = 0    # 重试次数
 
     def getHistory(self):
         return self.history
@@ -55,14 +56,18 @@ class Conversation(object):
     def doResponse(self, query, UUID='', onSay=None):
         statistic.report(1)
         self.interrupt()
-        self.appendHistory(0, query, UUID)
 
         if onSay:
             self.onSay = onSay
 
-        if query.strip() == '':
+        if query == None:
             self.pardon()
             return
+
+        if query.strip() == '':
+            return
+            
+        self.appendHistory(0, query, UUID)
 
         lastImmersiveMode = self.immersiveMode
 
@@ -147,6 +152,11 @@ class Conversation(object):
             self.doResponse(query)
 
     def pardon(self):
+        self.pardonTimes = self.pardonTimes or 0
+        self.pardonTimes += 1
+        if self.pardonTimes > 1:
+            self.pardonTimes = 0
+            return
         self.say("抱歉，刚刚没听清，能再说一遍吗？", onCompleted=lambda: self.doResponse(self.activeListen()))
 
     def say(self, msg, cache=False, plugin='', onCompleted=None):

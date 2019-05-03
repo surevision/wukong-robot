@@ -3,6 +3,8 @@
 import os
 import subprocess
 import time
+import socket
+import platform
 from robot import config, constants, logging
 from robot.sdk.AbstractPlugin import AbstractPlugin
 
@@ -66,13 +68,28 @@ class Plugin(AbstractPlugin):
             subprocess.run(command, shell=False, check=True)
             if sound:                
                 self.play(constants.getData('camera.wav'))
-                photo_url = 'http://{}:{}/photo/{}'.format(config.get('/server/host'), config.get('/server/port'), os.path.basename(dest_file))
+                # photo_url = 'http://{}:{}/photo/{}'.format(config.get('/server/host'), config.get('/server/port'), os.path.basename(dest_file))
+                photo_url = 'http://{}:{}/photo/{}'.format(self.getIp(), config.get('/server/port'), os.path.basename(dest_file))
                 self.say(u'拍照成功：{}'.format(photo_url), cache=True)
         except subprocess.CalledProcessError as e:
             logger.error(e)
             if sound:
                 self.say(u"拍照失败，请检查相机是否连接正确", cache=True)        
 
+    def getIp(self):
+        ip = config.get('/server/host')
+        if platform.system() == "Linux":
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('www.baidu.com', 0))
+                ip = s.getsockname()[0]
+            except:
+                pass
+            finally:
+                s.close()
+            return ip
+
+        return ip
 
     def isValid(self, text, parsed):
         return any(word in text for word in ["拍照", "拍张照"])

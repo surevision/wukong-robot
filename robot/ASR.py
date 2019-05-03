@@ -75,10 +75,13 @@ class BaiduASR(AbstractASR):
         })
         if res['err_no'] == 0:
             logger.info('{} 语音识别到了：{}'.format(self.SLUG, res['result']))
-            return ''.join(res['result'])
+            if len(res['result']) != 0:
+                return ''.join(res['result'])
+            logger.critical('{} 语音识别到内容为空'.format(self.SLUG), '语音识别到内容为空')
+            return ''
         else:
             logger.info('{} 语音识别出错了: {}'.format(self.SLUG, res['err_msg']))
-            return ''
+            return None
 
 
 class TencentASR(AbstractASR):
@@ -105,10 +108,13 @@ class TencentASR(AbstractASR):
         res = json.loads(r)
         if 'Response' in res and 'Result' in res['Response']:
             logger.info('{} 语音识别到了：{}'.format(self.SLUG, res['Response']['Result']))
-            return res['Response']['Result']
+            if len(res['Response']['Result']) != 0:
+                return res['Response']['Result']
+            logger.critical('{} 语音识别到内容为空'.format(self.SLUG), exc_info=True)
+            return ''
         else:
             logger.critical('{} 语音识别出错了'.format(self.SLUG), exc_info=True)
-            return ''
+            return None
 
 
 class XunfeiASR(AbstractASR):
@@ -164,7 +170,7 @@ class XunfeiASR(AbstractASR):
             return res['data']
         else:
             logger.critical('{} 语音识别出错了'.format(self.SLUG), exc_info=True)
-            return ''
+            return None
 
 
 class AliASR(AbstractASR):
@@ -190,7 +196,7 @@ class AliASR(AbstractASR):
             return result
         else:
             logger.critical('{} 语音识别出错了'.format(self.SLUG), exc_info=True)
-            return ''
+            return None
 
 
 def get_engine_by_slug(slug=None):
