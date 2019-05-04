@@ -91,6 +91,7 @@ class I2c(threading.Thread):
         regulator = framerate_regulator(fps=30)
 
         isEmotion = False
+        emotions = [">.<", "•̀ㅂ•́", "≧▽≦", "´ㅂ`", "￣▽￣", "^∇^"]
         emoType = 0
         emoTime = 0
         frame = 0
@@ -106,9 +107,9 @@ class I2c(threading.Thread):
                 today_date = now.strftime("%Y年%m月%d日")
                 today_time = now.strftime("%H:%M:%S")
 
-                if random.random() * 100 < 5:
+                if not isEmotion and random.random() * 100 <= 1:
                     isEmotion = True
-                    emoType = math.floor(random.random() * 6)
+                    emoType = math.floor(random.random() * len(emotions))
                     emoTime = random.random() * 4 + 2
                     frame = 0
 
@@ -129,7 +130,7 @@ class I2c(threading.Thread):
                         else:
                             text = "0.0"
                             if isEmotion:
-                                text = [">.<", "•̀ㅂ•́", "≧▽≦", "´ㅂ`", "￣▽￣", "^∇^"][emoType]
+                                text = emotions[emoType]
                                 if frame > emoTime:
                                     isEmotion = False
                                     frame = 0
