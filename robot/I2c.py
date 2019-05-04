@@ -127,16 +127,18 @@ class I2c(threading.Thread):
                             if self.lastTextShowFrame <= 0:
                                 self.lastText = None
                         else:
+                            text = "0.0"
                             if isEmotion:
-                                text = [">.<", "•̀ㅂ•́و", "≧▽≦", "´ㅂ`", "￣▽￣", "^∇^"][emoType]
-                                eye.text((0, 0), text, font=fontEye, align="center", fill="white")
+                                text = [">.<", "•̀ㅂ•́", "≧▽≦", "´ㅂ`", "￣▽￣", "^∇^"][emoType]
                                 if frame > emoTime:
                                     isEmotion = False
                                     frame = 0
                             elif frame % (30) < (28):
-                                eye.text((0, 0), "0.0", font=fontEye, align="center", fill="white")
+                                pass
                             else:
-                                eye.text((0, 0), "-.-", font=fontEye, align="center", fill="white")
+                                text = "-.-"
+                            x = math.floor((self.device.width - eye.textsize(text, fontEye)[0]) / 2)
+                            eye.text((x, 0), text, font=fontEye, align="center", fill="white")
                         
                         I2c.threadLock.release()
                         
