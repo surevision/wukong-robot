@@ -70,13 +70,15 @@ class I2c(threading.Thread):
         self.lastText = None
         self.lastTextX = 0
         self.lastTextShowFrame = 0
+        self.endTextAfterFrame = False
         self.running = True
 
     def recordSay(self, text):
-        # I2c.threadLock.acquire()
+        I2c.threadLock.acquire()
         self.lastText = text
-        # I2c.threadLock.release()
-        self.lastTextShowFrame = 60 # 持续显示时间
+        I2c.threadLock.release()
+        self.lastTextShowFrame = math.floor(14 / 5 * len(text) + 10) # 持续显示时间
+        self.endTextAfterFrame = False
         self.lastTextX = 0
 
     def run(self):
@@ -93,11 +95,11 @@ class I2c(threading.Thread):
         emoTime = 0
         frame = 0
         while True:
-            # I2c.threadLock.acquire()
+            I2c.threadLock.acquire()
             if not self.running:
-                # I2c.threadLock.release()
+                I2c.threadLock.release()
                 break
-            # I2c.threadLock.release()
+            I2c.threadLock.release()
             with regulator:
                 frame = frame + 1
                 now = datetime.datetime.now()
@@ -112,14 +114,16 @@ class I2c(threading.Thread):
 
                 with canvas(virtualEye) as eye:
                     try:
-                        # I2c.threadLock.acquire()
+                        I2c.threadLock.acquire()
                         if self.lastText != None:
                             # 显示上次说的内容
                             eye.text((self.lastTextX, 0), self.lastText, font=fontEye, align="center", fill="white")
-                            self.lastTextShowFrame -= 1
                             self.lastTextX -= 5
                             if self.lastTextX < -len(self.lastText) * (20 + 2):
+                                self.endTextAfterFrame = True # 显示过一轮，开始等待结束
                                 self.lastTextX = self.device.width
+                            if self.endTextAfterFrame:
+                                self.lastTextShowFrame -= 1
                             if self.lastTextShowFrame <= 0:
                                 self.lastText = None
                         else:
@@ -134,7 +138,7 @@ class I2c(threading.Thread):
                             else:
                                 eye.text((0, 0), "-.-", font=fontEye, align="center", fill="white")
                         
-                        # I2c.threadLock.release()
+                        I2c.threadLock.release()
                         
                         eye.text((0, 28 + 4), today_date, font=fontTxt, align="center", fill="white")
                         eye.text((0, 28 + 4 + 14 + 4), today_time, font=fontTxt, align="center", fill="white")
@@ -143,6 +147,6 @@ class I2c(threading.Thread):
                         logger.error("I2C显示出错！ {}".format(e))
                         
     def terminate(self):
-        # I2c.threadLock.acquire()
+        I2c.threadLock.acquire()
         self.running = False
-        # I2c.threadLock.release()
+        I2c.threadLock.release()
