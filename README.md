@@ -5,6 +5,7 @@ fork 自 [wukong-robot](https://wukong.hahack.com)
 自用定制模块：
 
 - iic显示模块
+- 百度Unit聊天机器人
 
 效果：
 
