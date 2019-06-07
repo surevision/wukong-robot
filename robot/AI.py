@@ -1,6 +1,7 @@
 # -*- coding: utf-8-*-
 import requests
 import json
+import time
 from robot import logging
 from robot import config
 from uuid import getnode as get_mac
@@ -137,6 +138,75 @@ class Emotibot(AbstractRobot):
         except Exception:
             logger.critical("Emotibot failed to responsed for %r",
                                   msg, exc_info=True)
+            return "抱歉, 我的大脑短路了，请稍后再试试."
+
+class BaiduUnitRobot(AbstractRobot):
+
+    SLUG = "unit"
+
+    def __init__(self, appkey, appsecret, robot_id):
+        """
+        百度机器人
+        """
+        super(self.__class__, self).__init__()
+        self.appkey = appkey
+        self.appsecret = appsecret
+        self.robot_id = robot_id
+        self.apptoken = ''
+
+    @classmethod
+    def get_config(cls):
+        # Try to get baidu_unit config from config
+        return config.get('unit', {})
+
+    def chat(self, texts):
+        """
+        使用百度机器人聊天
+
+        Arguments:
+        texts -- user input, typically speech, to be parsed by a module
+        """
+        msg = ''.join(texts)
+        try:
+            if self.apptoken == '':
+                # 获取token
+                logger.info('key {}, secret: {}'.format(self.appkey, self.appsecret))
+                url = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={}&client_secret={}&'.format(self.appkey, self.appsecret)
+                r = requests.post(url)
+                respond = json.loads(r.text)
+                if 'error' in respond.keys():
+                    logger.info('error :{}'.format(respond['error']))
+                else:
+                    self.apptoken = respond['access_token']
+            url = 'https://aip.baidubce.com/rpc/2.0/unit/service/chat?access_token={}'.format(self.apptoken)
+            userid = str(get_mac())[:32]
+            log_id = time.time()
+            headers={}
+            headers['Content-Type']='application/json'
+            body = {
+                'log_id':log_id,
+                'version':'2.0',
+                'service_id':self.robot_id,
+                'session_id':'', # 生成新一轮对话
+                'request':{'query':msg,'user_id':userid}
+            }
+            r = requests.post(url, headers=headers, data=json.dumps(body))
+            respond = json.loads(r.text)
+            result = ''
+            if respond['error_code'] == 0:
+                for resp in respond['result']['response_list']:
+                    if resp['status'] == 0:
+                        result = resp['action_list'][0]['say']
+                        break;
+            elif respond['error_code'] == 111: # token过期
+                self.apptoken = ''
+            else:
+                result = respond['error_msg']
+            logger.info('{} 回答：{}'.format(self.SLUG, result))
+            return result
+        except Exception:
+            logger.critical("Baidu robot failed to responsed for %r",
+                                  msg, exc_info=True)            
             return "抱歉, 我的大脑短路了，请稍后再试试."
 
 

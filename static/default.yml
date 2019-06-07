@@ -110,6 +110,7 @@ nlu_engine: unit
 # 可选值：
 # tuling    - 图灵机器人
 # emotibot  - 小影机器人
+# unit      - 百度unit
 robot: emotibot
 
 # 图灵机器人	
@@ -121,6 +122,13 @@ tuling:
 # http://botfactory.emotibot.com/
 emotibot:
     appid: '32ee80dddb36f1dc5356517503b3f55e'
+
+# 百度unit
+# https://ai.baidu.com/docs#/UNIT-v2-guide/top
+unit:
+    appkey: ''
+    appsecret: ''
+    robot_id: ''
 
 # 邮箱
 # 如果使用网易邮箱，还需设置允许第三方客户端收发邮件
